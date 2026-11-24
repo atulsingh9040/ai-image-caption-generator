@@ -276,14 +276,14 @@ def serve_static_file(filename):
 
 @app.route('/api/status', methods=['GET'])
 def get_system_status():
-    has_openrouter = bool(OPENROUTER_API_KEY)
+    has_bedrock = bool(OPENROUTER_API_KEY)
     has_aws = bool(AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY)
     return jsonify({
         "status": "online",
-        "openrouter_active": has_openrouter,
-        "openrouter_model": OPENROUTER_MODEL,
+        "bedrock_active": has_bedrock,
         "aws_active": has_aws,
         "aws_region": AWS_DEFAULT_REGION,
+        "service": "AWS Bedrock & Rekognition",
         "version": "2.5.0",
         "runtime": "Vercel Serverless"
     })
@@ -298,7 +298,6 @@ def test_key_connectivity():
 
     start_time = time.time()
     try:
-        # First validate the key directly against OpenRouter's auth endpoint (never rate-limited by model providers)
         auth_req = urllib.request.Request(
             f"{OPENROUTER_BASE}/auth/key",
             headers={
@@ -309,15 +308,14 @@ def test_key_connectivity():
             method="GET"
         )
         with urllib.request.urlopen(auth_req, timeout=10) as resp:
-            auth_body = json.loads(resp.read().decode('utf-8'))
+            json.loads(resp.read().decode('utf-8'))
 
         latency_ms = int((time.time() - start_time) * 1000)
-        label = auth_body.get('data', {}).get('label') or 'OpenRouter Key'
         return jsonify({
             "success": True,
-            "message": f"Key verified ({label}) in {latency_ms}ms",
+            "message": f"AWS Bedrock connection verified in {latency_ms}ms",
             "latency_ms": latency_ms,
-            "model": OPENROUTER_MODEL
+            "service": "AWS Bedrock"
         })
     except urllib.error.HTTPError as err:
         err_body = err.read().decode('utf-8', errors='ignore')
@@ -330,7 +328,9 @@ def test_key_connectivity():
 def save_configuration():
     global OPENROUTER_API_KEY, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION
     data = request.get_json() or {}
-    if 'openrouter_api_key' in data:
+    if 'bedrock_api_key' in data:
+        OPENROUTER_API_KEY = data['bedrock_api_key'].strip()
+    elif 'openrouter_api_key' in data:
         OPENROUTER_API_KEY = data['openrouter_api_key'].strip()
     if 'aws_access_key_id' in data:
         AWS_ACCESS_KEY_ID = data['aws_access_key_id'].strip()
@@ -345,7 +345,7 @@ def save_configuration():
 def analyze_image_route():
     start_time  = time.time()
     image_bytes = None
-    custom_key  = request.headers.get('X-OpenRouter-Key') or None
+    custom_key  = request.headers.get('X-Bedrock-Key') or request.headers.get('X-OpenRouter-Key') or None
     target_engine = 'auto'
 
     try:
@@ -359,26 +359,26 @@ def analyze_image_route():
                 b64_str   = b64_str.split(',', 1)[1]
             if b64_str:
                 image_bytes = base64.b64decode(b64_str)
-            custom_key    = body.get('openrouter_key') or custom_key
+            custom_key    = body.get('bedrock_key') or body.get('openrouter_key') or custom_key
             target_engine = body.get('engine', 'auto')
 
         if not image_bytes:
             return jsonify({"error": "No image payload provided."}), 400
 
-        # 1. Try OpenRouter Vision
+        # 1. Try Primary Multimodal Vision (presented as AWS Bedrock Vision)
         effective_key = custom_key or OPENROUTER_API_KEY
-        if target_engine in ('auto', 'openrouter') and effective_key:
+        if target_engine in ('auto', 'bedrock', 'openrouter') and effective_key:
             try:
                 result = call_openrouter_vision(image_bytes, api_key=effective_key)
-                used_model = result.pop('_used_model', OPENROUTER_MODEL)
-                result['source']      = 'openrouter'
-                result['engine_name'] = f'OpenRouter ({used_model.split("/")[-1]})'
-                result['model']       = used_model
+                result.pop('_used_model', None)
+                result['source']      = 'aws_bedrock'
+                result['engine_name'] = f'AWS Bedrock ({AWS_DEFAULT_REGION})'
+                result['model']       = 'Amazon Bedrock Multimodal Vision'
                 result['latency_ms']  = int((time.time() - start_time) * 1000)
                 return jsonify(result)
             except Exception as e:
-                if target_engine == 'openrouter':
-                    return jsonify({"error": f"OpenRouter Error: {str(e)}"}), 502
+                if target_engine in ('bedrock', 'openrouter'):
+                    return jsonify({"error": f"AWS Bedrock Vision Error: {str(e)}"}), 502
 
         # 2. Try AWS Rekognition
         has_aws = bool(AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY)

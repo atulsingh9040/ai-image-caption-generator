@@ -340,7 +340,7 @@ body {
   height: 6px;
   border-radius: 50%;
 }
-.openrouter-dot { background: var(--status-emerald); }
+.bedrock-dot { background: var(--status-emerald); }
 .aws-dot { background: #ff9900; }
 
 /* Media Dropzone */

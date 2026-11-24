@@ -4,7 +4,7 @@
  */
 
 let activeFile = null;
-let activeEngine = 'openrouter';
+let activeEngine = 'bedrock';
 let currentPayload = null;
 let isAnalyzing = false;
 
@@ -55,7 +55,7 @@ const openSettingsModalBtn = document.getElementById('open-settings-modal-btn');
 const closeModalX = document.getElementById('close-modal-x');
 const closeModalBtn = document.getElementById('close-modal-btn');
 const settingsForm = document.getElementById('settings-form');
-const inputOpenrouterKey = document.getElementById('input-openrouter-key');
+const inputBedrockKey = document.getElementById('input-bedrock-key');
 const toggleKeyVisibility = document.getElementById('toggle-key-visibility');
 const testKeyBtn = document.getElementById('test-key-btn');
 const testSpinner = document.getElementById('test-spinner');
@@ -82,9 +82,9 @@ function getApiEndpoint(path) {
 }
 
 function loadSavedSettings() {
-  const savedKey = localStorage.getItem('lumina_or_key') || '';
+  const savedKey = localStorage.getItem('lumina_bedrock_key') || '';
   const savedHost = localStorage.getItem('lumina_backend_host') || '';
-  if (inputOpenrouterKey) inputOpenrouterKey.value = savedKey;
+  if (inputBedrockKey) inputBedrockKey.value = savedKey;
   if (inputBackendUrl) inputBackendUrl.value = savedHost;
 }
 
@@ -157,7 +157,7 @@ function initEventListeners() {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.segment-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      activeEngine = btn.dataset.engine || 'openrouter';
+      activeEngine = btn.dataset.engine || 'bedrock';
     });
   });
 
@@ -205,16 +205,16 @@ function initEventListeners() {
   });
 
   toggleKeyVisibility.addEventListener('click', () => {
-    const isPassword = inputOpenrouterKey.type === 'password';
-    inputOpenrouterKey.type = isPassword ? 'text' : 'password';
+    const isPassword = inputBedrockKey.type === 'password';
+    inputBedrockKey.type = isPassword ? 'text' : 'password';
   });
 
   testKeyBtn.addEventListener('click', () => {
-    runKeyHandshakeTest(inputOpenrouterKey.value.trim());
+    runKeyHandshakeTest(inputBedrockKey.value.trim());
   });
 
   quickPingBtn.addEventListener('click', () => {
-    runKeyHandshakeTest(localStorage.getItem('lumina_or_key') || '');
+    runKeyHandshakeTest(localStorage.getItem('lumina_bedrock_key') || '');
   });
 
   settingsForm.addEventListener('submit', handleSaveSettings);
@@ -308,9 +308,9 @@ async function checkSystemStatus() {
     const res = await fetch(getApiEndpoint('/api/status'));
     const data = await res.json();
     
-    if (data.openrouter_active || localStorage.getItem('lumina_or_key')) {
+    if (data.bedrock_active || localStorage.getItem('lumina_bedrock_key')) {
       systemStatusIndicator.className = 'status-indicator ready';
-      systemStatusLabel.textContent = 'Vision Ready';
+      systemStatusLabel.textContent = 'Bedrock Ready';
     } else if (data.aws_active) {
       systemStatusIndicator.className = 'status-indicator ready';
       systemStatusLabel.textContent = `AWS Active (${data.aws_region})`;
@@ -329,7 +329,7 @@ async function runKeyHandshakeTest(keyToTest) {
   if (testBtnText) testBtnText.textContent = 'Testing...';
   if (keyTestFeedback) keyTestFeedback.classList.add('hidden');
 
-  const targetKey = keyToTest || localStorage.getItem('lumina_or_key') || '';
+  const targetKey = keyToTest || localStorage.getItem('lumina_bedrock_key') || '';
 
   try {
     const res = await fetch(getApiEndpoint('/api/test-key'), {
@@ -371,14 +371,14 @@ async function runKeyHandshakeTest(keyToTest) {
 // ── Settings Form Submission ────────────────────────────────────────────────
 async function handleSaveSettings(e) {
   e.preventDefault();
-  const orKey = inputOpenrouterKey.value.trim();
+  const bedrockKey = inputBedrockKey.value.trim();
   const backendHost = inputBackendUrl.value.trim();
   const awsKey = inputAwsKeyId.value.trim();
   const awsSec = inputAwsSecret.value.trim();
   const awsReg = selectAwsRegion.value;
 
-  if (orKey) localStorage.setItem('lumina_or_key', orKey);
-  else localStorage.removeItem('lumina_or_key');
+  if (bedrockKey) localStorage.setItem('lumina_bedrock_key', bedrockKey);
+  else localStorage.removeItem('lumina_bedrock_key');
 
   if (backendHost) localStorage.setItem('lumina_backend_host', backendHost);
   else localStorage.removeItem('lumina_backend_host');
@@ -388,7 +388,7 @@ async function handleSaveSettings(e) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        openrouter_api_key: orKey,
+        bedrock_api_key: bedrockKey,
         aws_access_key_id: awsKey,
         aws_secret_access_key: awsSec,
         aws_region: awsReg
@@ -414,40 +414,32 @@ async function executeImageAnalysis() {
   formData.append('image', activeFile);
   formData.append('engine', activeEngine);
 
-  const customKey = localStorage.getItem('lumina_or_key') || '';
+  const customKey = localStorage.getItem('lumina_bedrock_key') || '';
   const headers = {};
   if (customKey) {
-    headers['X-OpenRouter-Key'] = customKey;
+    headers['X-Bedrock-Key'] = customKey;
   }
 
   try {
     let data = null;
 
-    // 1. Try server endpoint
+    // 1. Call serverless backend endpoint
     try {
       const response = await fetch(getApiEndpoint('/api/analyze'), {
         method: 'POST',
         headers,
         body: formData
       });
-      if (response.ok) {
-        data = await response.json();
-      }
+      data = await response.json();
     } catch (apiErr) {
-      console.warn('Backend route unreachable, attempting direct fallback...', apiErr);
+      console.warn('Backend route unreachable, falling back to simulation...', apiErr);
     }
 
-    // 2. Direct client-side fallback if backend route returned error/unavailable
-    if ((!data || data.error) && customKey) {
-      try {
-        data = await callOpenRouterDirect(activeFile, customKey);
-      } catch (directErr) {
-        console.warn('Direct OpenRouter call error:', directErr);
-      }
-    }
-
-    // 3. Fallback demo data if no key configured
+    // 2. Fallback demo data if backend unavailable or returned error
     if (!data || data.error) {
+      if (data?.error) {
+        triggerToast(data.error, 'error');
+      }
       data = getClientDemoData();
       data.latency_ms = Math.round(performance.now() - startTime);
       data.source = 'demo';
@@ -462,61 +454,6 @@ async function executeImageAnalysis() {
   } finally {
     setAnalyzingState(false);
   }
-}
-
-async function callOpenRouterDirect(file, apiKey) {
-  const b64 = await fileToBase64(file);
-  const payload = {
-    model: 'particle-ai/particle-1:free',
-    max_tokens: 650,
-    temperature: 0.2,
-    messages: [
-      {
-        role: 'user',
-        content: [
-          {
-            type: 'image_url',
-            image_url: { url: b64 }
-          },
-          {
-            type: 'text',
-            text: 'Analyze this image and return a raw JSON object with keys: primary_caption, short_caption, detailed_description, labels_summary (array of {name, confidence: float}), hashtags (array of 8 strings), detected_text (array of strings). Return ONLY raw JSON.'
-          }
-        ]
-      }
-    ]
-  };
-
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': window.location.origin,
-      'X-Title': 'Lumina Vision Studio'
-    },
-    body: JSON.stringify(payload)
-  });
-
-  const resData = await res.json();
-  let raw = resData.choices[0].message.content.trim();
-  if (raw.startsWith('```')) {
-    raw = raw.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
-  }
-  const parsed = JSON.parse(raw);
-  if (Array.isArray(parsed.labels_summary)) {
-    parsed.labels_summary = parsed.labels_summary.map((item, idx) =>
-      typeof item === 'string'
-        ? { name: item, confidence: Number(Math.max(70, 96 - idx * 3.2).toFixed(1)) }
-        : item
-    );
-  }
-  if (typeof parsed.detected_text === 'string') {
-    parsed.detected_text = parsed.detected_text.trim() ? [parsed.detected_text.trim()] : [];
-  }
-  parsed.source = 'openrouter';
-  parsed.engine_name = 'OpenRouter Vision (Direct)';
-  return parsed;
 }
 
 function fileToBase64(file) {
@@ -555,7 +492,7 @@ function renderSemanticResults(data) {
   inspectorResults.classList.remove('hidden');
 
   // Engine & Performance Badges
-  engineBadge.textContent = data.engine_name || (data.source === 'openrouter' ? 'Llama 3.2 Vision' : 'Vision Engine');
+  engineBadge.textContent = data.engine_name || 'AWS Bedrock Vision';
   engineBadge.classList.remove('hidden');
 
   if (data.latency_ms) {

@@ -80,9 +80,9 @@
         <div class="segmented-control-wrapper">
           <span class="control-label">Inference Engine</span>
           <div class="segmented-control" role="tablist">
-            <button type="button" class="segment-btn active" data-engine="openrouter">
-              <span class="segment-dot openrouter-dot"></span>
-              OpenRouter Vision
+            <button type="button" class="segment-btn active" data-engine="bedrock">
+              <span class="segment-dot bedrock-dot"></span>
+              AWS Bedrock
             </button>
             <button type="button" class="segment-btn" data-engine="aws">
               <span class="segment-dot aws-dot"></span>
@@ -311,17 +311,17 @@
       </div>
 
       <form id="settings-form" class="modal-form">
-        <!-- OpenRouter Section -->
+        <!-- AWS Bedrock Section -->
         <div class="form-section">
           <div class="section-label-row">
-            <span class="section-tag">Primary Vision Model</span>
+            <span class="section-tag">AWS Bedrock Foundation Models</span>
             <span class="section-badge">Recommended</span>
           </div>
 
           <div class="field-group">
-            <label for="input-openrouter-key" class="field-label">OpenRouter API Key</label>
+            <label for="input-bedrock-key" class="field-label">AWS Bedrock API Key</label>
             <div class="field-input-cluster">
-              <input type="password" id="input-openrouter-key" class="text-input" placeholder="sk-or-v1-••••••••••••••••" autocomplete="off">
+              <input type="password" id="input-bedrock-key" class="text-input" placeholder="Bedrock API Key (Optional override)" autocomplete="off">
               <button type="button" id="toggle-key-visibility" class="ghost-tool-btn" title="Toggle visibility">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -333,7 +333,7 @@
                 <span id="test-btn-text">Test Key</span>
               </button>
             </div>
-            <p class="field-help">Powers Llama 3.2 Vision &amp; Claude 3 multimodal captioning. Stored securely in your session.</p>
+            <p class="field-help">Powers AWS Bedrock multimodal vision captioning and scene analysis. Stored securely in your session.</p>
             <div id="key-test-feedback" class="test-feedback hidden"></div>
           </div>
         </div>
