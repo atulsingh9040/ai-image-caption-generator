@@ -4,7 +4,7 @@ Automated unit tests for the AI Caption Generator Backend.
 import unittest
 import json
 import io
-from backend.app import app
+from app import app
 
 class TestCaptionGeneratorAPI(unittest.TestCase):
     def setUp(self):

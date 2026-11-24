@@ -7,7 +7,7 @@ import os
 # Add project root to sys.path
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
-from backend.app import app
+from app import app
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))

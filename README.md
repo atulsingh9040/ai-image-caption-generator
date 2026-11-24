@@ -15,24 +15,24 @@ A full-stack AI Image Caption Generator web application that analyzes images and
 
 ---
 
-## 📁 Project Structure
+## 📁 Project Structure (Single-Folder Layout)
 
 ```
-Image-caption-generator-using-AI/
-├── backend/
-│   ├── app.py              # Flask REST API and static server
-│   ├── aws_service.py      # AWS Rekognition & Bedrock client wrapper
-│   └── caption_engine.py   # Caption synthesis & NLP heuristics
-├── frontend/
-│   ├── index.html          # Modern HTML5 web UI
-│   ├── style.css           # Glassmorphism dark-mode styles
-│   └── app.js              # Frontend logic, TTS, drag & drop, API client
+ai-image-caption-generator/
+├── index.html          # Web UI layout (served at /)
+├── style.css           # Glassmorphism dark-mode styles
+├── app.js              # Frontend logic & API interaction
+├── app.py              # Flask server & REST API
+├── aws_service.py      # AWS Rekognition & Bedrock client
+├── caption_engine.py   # Caption synthesis & heuristics
+├── api/
+│   └── index.py        # Vercel Serverless Function entrypoint
 ├── tests/
-│   └── test_api.py         # Automated API tests
-├── .env.example            # Environment variables template
-├── requirements.txt        # Python package dependencies
-├── run.py                  # Single-command application launcher
-├── generator.py            # Original BLIP/Gradio local generator
+│   └── test_api.py     # Automated tests
+├── vercel.json         # Vercel routing configuration
+├── .env.example        # Environment variables template
+├── requirements.txt    # Python dependencies
+├── run.py              # Local server launcher
 └── README.md
 ```
 

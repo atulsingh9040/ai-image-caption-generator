@@ -8,16 +8,15 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-from backend.aws_service import AWSCaptionService
-from backend.caption_engine import CaptionEngine
+from aws_service import AWSCaptionService
+from caption_engine import CaptionEngine
 
 # Load environment variables
 load_dotenv()
 
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-FRONTEND_DIR = os.path.join(BASE_DIR, 'frontend')
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
-app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path='')
+app = Flask(__name__, static_folder=BASE_DIR, static_url_path='')
 CORS(app)
 
 # Initialize AWS Service
@@ -29,7 +28,7 @@ aws_service = AWSCaptionService(
 
 @app.route('/')
 def serve_index():
-    return send_from_directory(FRONTEND_DIR, 'index.html')
+    return send_from_directory(BASE_DIR, 'index.html')
 
 @app.route('/api/status', methods=['GET'])
 def get_status():
