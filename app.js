@@ -17,7 +17,7 @@ const analyzeBtn = document.getElementById('analyze-btn');
 const btnSpinner = document.getElementById('spinner');
 const btnText = document.getElementById('btn-text');
 
-// AWS Status & Modal Elements
+// API Status & Modal Elements
 const awsStatusPill = document.getElementById('aws-status-pill');
 const awsStatusText = document.getElementById('aws-status-text');
 const openSettingsBtn = document.getElementById('open-settings-btn');
@@ -25,6 +25,9 @@ const closeSettingsBtn = document.getElementById('close-settings-btn');
 const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
 const settingsModal = document.getElementById('settings-modal');
 const awsConfigForm = document.getElementById('aws-config-form');
+const testApiBtn = document.getElementById('test-api-btn');
+const hiTestBtn = document.getElementById('hi-test-btn');
+const hiTestResult = document.getElementById('hi-test-result');
 
 // Results Elements
 const resultsEmpty = document.getElementById('results-empty');
@@ -51,6 +54,44 @@ document.addEventListener('DOMContentLoaded', () => {
   setupEventListeners();
 });
 
+// ── Shared API test helper ────────────────────────────────────────────────────
+async function runApiHiTest(apiKey, resultEl) {
+  if (resultEl) {
+    resultEl.className = 'test-result-msg';
+    resultEl.textContent = '⏳ Sending Hi…';
+    resultEl.classList.remove('hidden');
+  }
+  try {
+    const body = {};
+    if (apiKey) body.api_key = apiKey;
+    const res = await fetch(getApiEndpoint('/api/test-key'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`✅ API works! Reply: "${data.message}"`, 'success');
+      if (resultEl) {
+        resultEl.className = 'test-result-msg success';
+        resultEl.textContent = `✅ ${data.message}`;
+      }
+    } else {
+      showToast(`❌ API error: ${data.message}`, 'error');
+      if (resultEl) {
+        resultEl.className = 'test-result-msg error';
+        resultEl.textContent = `❌ ${data.message}`;
+      }
+    }
+  } catch (err) {
+    showToast('❌ Could not reach backend.', 'error');
+    if (resultEl) {
+      resultEl.className = 'test-result-msg error';
+      resultEl.textContent = `❌ ${err.message}`;
+    }
+  }
+}
+
 function setupEventListeners() {
   // File Browse
   browseBtn.addEventListener('click', (e) => {
@@ -65,6 +106,25 @@ function setupEventListeners() {
       handleFileSelected(e.target.files[0]);
     }
   });
+
+  // ── 👋 Test API (header button) ───────────────────────────────────────────
+  if (testApiBtn) {
+    testApiBtn.addEventListener('click', async () => {
+      testApiBtn.disabled = true;
+      testApiBtn.textContent = '⏳ Testing…';
+      await runApiHiTest(null, null);
+      testApiBtn.disabled = false;
+      testApiBtn.textContent = '👋 Test API';
+    });
+  }
+
+  // ── 👋 Hi Test (inside modal) ─────────────────────────────────────────────
+  if (hiTestBtn) {
+    hiTestBtn.addEventListener('click', async () => {
+      const key = document.getElementById('openrouter-key').value.trim();
+      await runApiHiTest(key || null, hiTestResult);
+    });
+  }
 
   // Drag and Drop
   ['dragenter', 'dragover'].forEach(eventName => {
@@ -221,12 +281,15 @@ async function checkAWSStatus() {
   try {
     const res = await fetch(getApiEndpoint('/api/status'));
     const data = await res.json();
-    if (data.aws_configured) {
+    if (data.openrouter_configured) {
+      awsStatusPill.className = 'status-pill status-connected';
+      awsStatusText.textContent = 'OpenRouter AI ✓';
+    } else if (data.aws_configured) {
       awsStatusPill.className = 'status-pill status-connected';
       awsStatusText.textContent = `AWS Active (${data.region})`;
     } else {
       awsStatusPill.className = 'status-pill status-demo';
-      awsStatusText.textContent = 'Demo Mode (Add AWS Key)';
+      awsStatusText.textContent = 'Demo Mode';
     }
   } catch (err) {
     awsStatusPill.className = 'status-pill status-demo';
@@ -237,6 +300,7 @@ async function checkAWSStatus() {
 async function handleSaveAWSConfig(e) {
   e.preventDefault();
   const backendUrl = document.getElementById('backend-url').value.trim();
+  const orKey = document.getElementById('openrouter-key').value.trim();
   const keyId = document.getElementById('aws-key-id').value.trim();
   const secretKey = document.getElementById('aws-secret-key').value.trim();
   const region = document.getElementById('aws-region').value;
@@ -247,26 +311,20 @@ async function handleSaveAWSConfig(e) {
     localStorage.removeItem('custom_backend_url');
   }
 
-  if (!keyId && !secretKey) {
-    showToast('Settings saved!');
-    settingsModal.classList.add('hidden');
-    checkAWSStatus();
-    return;
-  }
+  const payload = { aws_region: region };
+  if (orKey) payload.openrouter_api_key = orKey;
+  if (keyId) payload.aws_access_key_id = keyId;
+  if (secretKey) payload.aws_secret_access_key = secretKey;
 
   try {
     const res = await fetch(getApiEndpoint('/api/config'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        aws_access_key_id: keyId,
-        aws_secret_access_key: secretKey,
-        aws_region: region
-      })
+      body: JSON.stringify(payload)
     });
     const data = await res.json();
     if (data.success) {
-      showToast('AWS Credentials saved successfully! ✅');
+      showToast('Configuration saved! ✅');
       settingsModal.classList.add('hidden');
       checkAWSStatus();
     } else {
@@ -314,7 +372,11 @@ function renderResults(data) {
   resultsContent.classList.remove('hidden');
 
   // Source Badge
-  if (data.source === 'aws_rekognition') {
+  if (data.source === 'openrouter') {
+    analysisSourceBadge.textContent = '🤖 OpenRouter AI';
+    analysisSourceBadge.className = 'badge-openrouter';
+    analysisSourceBadge.classList.remove('hidden');
+  } else if (data.source === 'aws_rekognition') {
     analysisSourceBadge.textContent = '⚡ AWS Rekognition';
     analysisSourceBadge.className = 'badge-aws';
     analysisSourceBadge.classList.remove('hidden');

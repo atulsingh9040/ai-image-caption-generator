@@ -33,12 +33,13 @@ class TestCaptionGeneratorAPI(unittest.TestCase):
         self.assertIn('hashtags', res_data)
 
     def test_config_endpoint_validation(self):
-        # Missing keys
+        # Config now accepts partial payload (e.g. just openrouter key), always returns 200
         response = self.app.post('/api/config', json={})
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 200)
 
-        # Valid payload
+        # With a valid payload it also succeeds
         response = self.app.post('/api/config', json={
+            'openrouter_api_key': 'sk-or-v1-test',
             'aws_access_key_id': 'TEST_KEY',
             'aws_secret_access_key': 'TEST_SECRET',
             'aws_region': 'us-east-1'
