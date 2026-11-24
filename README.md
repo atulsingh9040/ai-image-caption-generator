@@ -68,6 +68,28 @@ Open your browser at:
 
 ---
 
+## ⚡ Deploy to Vercel
+
+This repository includes built-in Vercel configuration (`vercel.json` and `api/index.py`), allowing seamless deployment on Vercel:
+
+### Method 1: Deploy via Vercel Dashboard
+1. Go to [vercel.com](https://vercel.com) and click **"Add New..."** > **"Project"**.
+2. Import this repository: `atulsingh9040/ai-image-caption-generator`.
+3. Under **Environment Variables**, add:
+   - `AWS_ACCESS_KEY_ID`: *(Your AWS Access Key)*
+   - `AWS_SECRET_ACCESS_KEY`: *(Your AWS Secret Key)*
+   - `AWS_DEFAULT_REGION`: `us-east-1`
+4. Click **Deploy**!
+   - Vercel automatically deploys the frontend static assets and routes `/api/*` to the Python serverless function.
+
+### Method 2: Deploy via Vercel CLI
+```bash
+npm i -g vercel
+vercel
+```
+
+---
+
 ## 🧪 Testing the Application
 
 Run the automated test suite:

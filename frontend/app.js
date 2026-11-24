@@ -204,9 +204,22 @@ function loadSampleImage(type) {
   showToast(`Loaded sample: ${sample.title}`);
 }
 
+function getApiEndpoint(path) {
+  const customUrl = localStorage.getItem('custom_backend_url');
+  if (customUrl) {
+    return `${customUrl.replace(/\/$/, '')}${path}`;
+  }
+  return path;
+}
+
 async function checkAWSStatus() {
+  const backendInput = document.getElementById('backend-url');
+  if (backendInput && !backendInput.value) {
+    backendInput.value = localStorage.getItem('custom_backend_url') || '';
+  }
+
   try {
-    const res = await fetch('/api/status');
+    const res = await fetch(getApiEndpoint('/api/status'));
     const data = await res.json();
     if (data.aws_configured) {
       awsStatusPill.className = 'status-pill status-connected';
@@ -223,12 +236,26 @@ async function checkAWSStatus() {
 
 async function handleSaveAWSConfig(e) {
   e.preventDefault();
+  const backendUrl = document.getElementById('backend-url').value.trim();
   const keyId = document.getElementById('aws-key-id').value.trim();
   const secretKey = document.getElementById('aws-secret-key').value.trim();
   const region = document.getElementById('aws-region').value;
 
+  if (backendUrl) {
+    localStorage.setItem('custom_backend_url', backendUrl);
+  } else {
+    localStorage.removeItem('custom_backend_url');
+  }
+
+  if (!keyId && !secretKey) {
+    showToast('Settings saved!');
+    settingsModal.classList.add('hidden');
+    checkAWSStatus();
+    return;
+  }
+
   try {
-    const res = await fetch('/api/config', {
+    const res = await fetch(getApiEndpoint('/api/config'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -259,7 +286,7 @@ async function performAnalysis() {
   formData.append('image', selectedFile);
 
   try {
-    const response = await fetch('/api/analyze', {
+    const response = await fetch(getApiEndpoint('/api/analyze'), {
       method: 'POST',
       body: formData
     });
