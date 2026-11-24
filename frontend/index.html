@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Image Caption Generator | Powered by AWS</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Background Glow Effects -->
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="container header-container">
+      <div class="logo-group">
+        <div class="logo-icon">✨</div>
+        <div>
+          <h1 class="logo-title">CaptionAI <span class="badge-aws">AWS Rekognition</span></h1>
+          <p class="logo-sub">Intelligent Image Captioning & Scene Understanding</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div id="aws-status-pill" class="status-pill status-demo">
+          <span class="status-dot"></span>
+          <span id="aws-status-text">Checking AWS...</span>
+        </div>
+        <button id="open-settings-btn" class="btn btn-secondary">
+          ⚙️ AWS Settings
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container main-content">
+    <div class="grid-layout">
+      
+      <!-- Left Column: Upload & Preview -->
+      <section class="card upload-section">
+        <div class="card-header">
+          <h2>Upload Image</h2>
+          <span class="text-muted">PNG, JPG, WEBP up to 10MB</span>
+        </div>
+
+        <!-- Drag & Drop Zone -->
+        <div id="drop-zone" class="drop-zone">
+          <input type="file" id="file-input" accept="image/*" class="file-input-hidden">
+          
+          <div id="drop-zone-idle" class="drop-zone-content">
+            <div class="upload-icon-wrapper">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+            </div>
+            <p class="drop-title">Drag & drop your image here</p>
+            <p class="drop-subtitle">or <button type="button" id="browse-btn" class="link-btn">browse files</button> from your device</p>
+            <p class="drop-tip">💡 You can also paste an image from clipboard (Ctrl+V)</p>
+          </div>
+
+          <!-- Preview State -->
+          <div id="preview-wrapper" class="preview-wrapper hidden">
+            <img id="image-preview" src="" alt="Upload Preview">
+            <button id="remove-img-btn" class="remove-btn" title="Remove image">✕</button>
+          </div>
+        </div>
+
+        <!-- Sample Presets -->
+        <div class="samples-wrapper">
+          <span class="sample-label">Or try a sample:</span>
+          <div class="sample-chips">
+            <button type="button" class="sample-chip" data-sample="nature">🏔️ Nature</button>
+            <button type="button" class="sample-chip" data-sample="wildlife">🦁 Wildlife</button>
+            <button type="button" class="sample-chip" data-sample="city">🌆 Cityscape</button>
+            <button type="button" class="sample-chip" data-sample="sports">⚽ Sports</button>
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <div class="action-footer">
+          <button id="analyze-btn" class="btn btn-primary btn-block" disabled>
+            <span class="btn-spinner hidden" id="spinner"></span>
+            <span id="btn-text">🚀 Analyze & Generate Caption</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Right Column: AI Analysis Results -->
+      <section class="card results-section">
+        <div class="card-header">
+          <h2>AI Caption & Insights</h2>
+          <span id="analysis-source-badge" class="badge hidden">AWS Rekognition</span>
+        </div>
+
+        <!-- Empty State -->
+        <div id="results-empty" class="results-empty">
+          <div class="empty-icon">🤖</div>
+          <h3>No Image Analyzed Yet</h3>
+          <p>Upload an image and hit Analyze to generate vivid AI captions and detect scene elements with AWS.</p>
+        </div>
+
+        <!-- Results Content -->
+        <div id="results-content" class="results-content hidden">
+          
+          <!-- Primary Caption Card -->
+          <div class="result-card primary-caption-card">
+            <div class="card-title-row">
+              <span class="card-eyebrow">✨ Generated Caption</span>
+              <div class="caption-actions">
+                <button id="speak-btn" class="icon-btn" title="Listen to caption">🔊 Speak</button>
+                <button id="copy-caption-btn" class="icon-btn" title="Copy caption">📋 Copy</button>
+              </div>
+            </div>
+            <p id="primary-caption-text" class="primary-caption">...</p>
+            <div id="short-caption-badge" class="short-badge">...</div>
+          </div>
+
+          <!-- Detailed Description -->
+          <div class="result-card">
+            <span class="card-eyebrow">📖 Scene Summary</span>
+            <p id="detailed-description-text" class="text-description">...</p>
+          </div>
+
+          <!-- Detected Labels -->
+          <div class="result-card">
+            <div class="card-title-row">
+              <span class="card-eyebrow">🏷️ Detected Entities & Confidence</span>
+              <span id="label-count" class="text-muted small-text">0 items</span>
+            </div>
+            <div id="labels-container" class="labels-grid">
+              <!-- Label pills injected dynamically -->
+            </div>
+          </div>
+
+          <!-- Detected Text (OCR) -->
+          <div id="detected-text-card" class="result-card hidden">
+            <span class="card-eyebrow">📝 Detected Text (OCR)</span>
+            <div id="detected-text-container" class="text-tags-container"></div>
+          </div>
+
+          <!-- Hashtags -->
+          <div class="result-card">
+            <div class="card-title-row">
+              <span class="card-eyebrow">#️⃣ Generated Tags</span>
+              <button id="copy-hashtags-btn" class="icon-btn" title="Copy all tags">📋 Copy Tags</button>
+            </div>
+            <p id="hashtags-text" class="hashtags-list">...</p>
+          </div>
+
+          <!-- Raw Data Accordion -->
+          <details class="raw-data-accordion">
+            <summary>🔍 View Raw AWS Response Data</summary>
+            <pre id="raw-json-viewer" class="json-viewer"></pre>
+          </details>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- AWS Settings Modal -->
+  <div id="settings-modal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>AWS Configuration</h3>
+        <button id="close-settings-btn" class="close-btn">✕</button>
+      </div>
+      <form id="aws-config-form">
+        <p class="modal-info">
+          Enter your AWS IAM credentials with <strong>AmazonRekognitionReadOnlyAccess</strong> policy to use live AWS Rekognition.
+        </p>
+        
+        <div class="form-group">
+          <label for="aws-key-id">AWS Access Key ID</label>
+          <input type="text" id="aws-key-id" placeholder="AKIA..." required>
+        </div>
+
+        <div class="form-group">
+          <label for="aws-secret-key">AWS Secret Access Key</label>
+          <input type="password" id="aws-secret-key" placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" required>
+        </div>
+
+        <div class="form-group">
+          <label for="aws-region">AWS Region</label>
+          <select id="aws-region">
+            <option value="us-east-1">US East (N. Virginia) [us-east-1]</option>
+            <option value="us-west-2">US West (Oregon) [us-west-2]</option>
+            <option value="ap-south-1">Asia Pacific (Mumbai) [ap-south-1]</option>
+            <option value="eu-west-1">Europe (Ireland) [eu-west-1]</option>
+            <option value="ap-southeast-1">Asia Pacific (Singapore) [ap-southeast-1]</option>
+          </select>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="cancel-settings-btn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save AWS Keys</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
