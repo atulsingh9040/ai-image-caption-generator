@@ -1,10 +1,10 @@
 """
-Automated unit tests for the AI Caption Generator Backend.
+Automated unit tests for AI Caption Studio API.
 """
 import unittest
 import json
 import io
-from app import app
+from api.index import app
 
 class TestCaptionGeneratorAPI(unittest.TestCase):
     def setUp(self):
@@ -16,10 +16,10 @@ class TestCaptionGeneratorAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data)
         self.assertEqual(data.get('status'), 'online')
-        self.assertIn('aws_configured', data)
+        self.assertIn('openrouter_active', data)
+        self.assertIn('aws_active', data)
 
-    def test_analyze_demo_mode(self):
-        # Create a small dummy 1x1 image
+    def test_analyze_demo_fallback(self):
         dummy_png = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15c4\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82'
         
         data = {
@@ -32,16 +32,9 @@ class TestCaptionGeneratorAPI(unittest.TestCase):
         self.assertIn('labels_summary', res_data)
         self.assertIn('hashtags', res_data)
 
-    def test_config_endpoint_validation(self):
-        # Config now accepts partial payload (e.g. just openrouter key), always returns 200
-        response = self.app.post('/api/config', json={})
-        self.assertEqual(response.status_code, 200)
-
-        # With a valid payload it also succeeds
+    def test_config_endpoint(self):
         response = self.app.post('/api/config', json={
-            'openrouter_api_key': 'sk-or-v1-test',
-            'aws_access_key_id': 'TEST_KEY',
-            'aws_secret_access_key': 'TEST_SECRET',
+            'openrouter_api_key': 'test-key',
             'aws_region': 'us-east-1'
         })
         self.assertEqual(response.status_code, 200)

@@ -1,18 +1,17 @@
 """
-Entry point to run the AI Image Caption Generator Application.
+Single-command launcher for Lumina Vision Studio.
 """
-import sys
 import os
+import sys
 
-# Add project root to sys.path
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
-from app import app
+from api.index import app
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
-    print("=" * 65)
-    print(" 🌟 AI Image Caption Generator (AWS Rekognition & Bedrock) 🌟")
-    print(f" Serving web app at: http://localhost:{port}")
-    print("=" * 65)
+    print("=" * 60)
+    print(" 🌟 Lumina Vision Studio")
+    print(f" Live server: http://localhost:{port}")
+    print("=" * 60)
     app.run(host='0.0.0.0', port=port, debug=False)

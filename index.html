@@ -3,163 +3,281 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Image Caption Generator | OpenRouter + AWS</title>
+  <title>Lumina Studio — Multimodal Vision & Scene Intelligence</title>
+  <meta name="description" content="Professional computer vision workspace for automated image captioning, scene understanding, entity detection, and semantic keyword extraction.">
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
-<body>
-  <!-- Background Glow Effects -->
-  <div class="glow-orb orb-1"></div>
-  <div class="glow-orb orb-2"></div>
+<body class="dark-theme">
+  <!-- Subtle Grid Backdrop -->
+  <div class="grid-backdrop"></div>
 
-  <!-- Header -->
-  <header class="header">
-    <div class="container header-container">
-      <div class="logo-group">
-        <div class="logo-icon">✨</div>
-        <div>
-          <h1 class="logo-title">CaptionAI <span class="badge-aws">AWS Rekognition</span></h1>
-          <p class="logo-sub">Intelligent Image Captioning & Scene Understanding</p>
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="nav-container">
+      <div class="brand-cluster">
+        <div class="brand-mark">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <div class="brand-meta">
+          <div class="brand-name-row">
+            <span class="brand-title">Lumina</span>
+            <span class="brand-sub">Studio</span>
+            <span class="version-tag">v2.4</span>
+          </div>
+          <span class="brand-tagline">Multimodal Vision &amp; Scene Understanding</span>
         </div>
       </div>
-      <div class="header-actions">
-        <div id="aws-status-pill" class="status-pill status-demo">
-          <span class="status-dot"></span>
-          <span id="aws-status-text">Checking API...</span>
+
+      <div class="nav-actions">
+        <!-- Live System Status Badge -->
+        <div id="system-status-indicator" class="status-indicator ready" title="Engine Status">
+          <span class="pulse-dot"></span>
+          <span id="system-status-label" class="status-label">System Active</span>
         </div>
-        <button id="test-api-btn" class="btn btn-test" title="Test API key with a quick Hi message">
-          👋 Test API
+
+        <!-- Connection Test Quick Trigger -->
+        <button id="quick-ping-btn" class="nav-btn" title="Verify engine latency &amp; API handshake">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+          </svg>
+          <span>Ping API</span>
         </button>
-        <button id="open-settings-btn" class="btn btn-secondary">
-          ⚙️ Settings
+
+        <!-- Configuration Settings Trigger -->
+        <button id="open-settings-modal-btn" class="nav-btn highlight" title="Configure Vision Models &amp; Credentials">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span>Settings</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Main Content -->
-  <main class="container main-content">
-    <div class="grid-layout">
-      
-      <!-- Left Column: Upload & Preview -->
-      <section class="card upload-section">
-        <div class="card-header">
-          <h2>Upload Image</h2>
-          <span class="text-muted">PNG, JPG, WEBP up to 10MB</span>
+  <!-- Studio Workbench -->
+  <main class="workbench-viewport">
+    <div class="workbench-grid">
+
+      <!-- Left Panel: Input & Control Console -->
+      <section class="panel console-panel">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <span class="panel-tag">Source</span>
+            <h2 class="panel-heading">Visual Input</h2>
+          </div>
+          <span class="hint-label">PNG, JPG, WEBP • Max 10MB</span>
         </div>
 
-        <!-- Drag & Drop Zone -->
-        <div id="drop-zone" class="drop-zone">
-          <input type="file" id="file-input" accept="image/*" class="file-input-hidden">
+        <!-- Engine Segmented Controller -->
+        <div class="segmented-control-wrapper">
+          <span class="control-label">Inference Engine</span>
+          <div class="segmented-control" role="tablist">
+            <button type="button" class="segment-btn active" data-engine="openrouter">
+              <span class="segment-dot openrouter-dot"></span>
+              OpenRouter Vision
+            </button>
+            <button type="button" class="segment-btn" data-engine="aws">
+              <span class="segment-dot aws-dot"></span>
+              AWS Rekognition
+            </button>
+            <button type="button" class="segment-btn" data-engine="auto">
+              Auto Best
+            </button>
+          </div>
+        </div>
+
+        <!-- Dropzone / Upload Target -->
+        <div id="drop-zone" class="media-dropzone" tabindex="0">
+          <input type="file" id="file-input" accept="image/*" class="file-input-element">
           
-          <div id="drop-zone-idle" class="drop-zone-content">
-            <div class="upload-icon-wrapper">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="17 8 12 3 7 8"></polyline>
-                <line x1="12" y1="3" x2="12" y2="15"></line>
+          <!-- Idle Upload Prompt -->
+          <div id="drop-zone-idle" class="dropzone-idle-state">
+            <div class="upload-glyph-box">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
               </svg>
             </div>
-            <p class="drop-title">Drag & drop your image here</p>
-            <p class="drop-subtitle">or <button type="button" id="browse-btn" class="link-btn">browse files</button> from your device</p>
-            <p class="drop-tip">💡 You can also paste an image from clipboard (Ctrl+V)</p>
+            <div class="dropzone-text-group">
+              <p class="dropzone-title">Upload image or drag &amp; drop</p>
+              <p class="dropzone-desc">Drag file directly or <span class="action-link">browse storage</span></p>
+            </div>
+            <div class="paste-indicator">
+              <kbd class="key-chip">Ctrl</kbd> + <kbd class="key-chip">V</kbd> to paste from clipboard
+            </div>
           </div>
 
-          <!-- Preview State -->
-          <div id="preview-wrapper" class="preview-wrapper hidden">
-            <img id="image-preview" src="" alt="Upload Preview">
-            <button id="remove-img-btn" class="remove-btn" title="Remove image">✕</button>
+          <!-- Active Preview Frame -->
+          <div id="preview-frame" class="preview-frame hidden">
+            <div class="preview-img-container">
+              <img id="image-preview" src="" alt="Source preview">
+            </div>
+            <div class="preview-overlay-bar">
+              <div class="meta-pill-cluster">
+                <span id="img-dim-pill" class="meta-pill">0 × 0</span>
+                <span id="img-size-pill" class="meta-pill">0 KB</span>
+              </div>
+              <button type="button" id="remove-img-btn" class="preview-clear-btn" title="Remove selected image">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                <span>Clear</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Sample Presets -->
-        <div class="samples-wrapper">
-          <span class="sample-label">Or try a sample:</span>
-          <div class="sample-chips">
-            <button type="button" class="sample-chip" data-sample="nature">🏔️ Nature</button>
-            <button type="button" class="sample-chip" data-sample="wildlife">🦁 Wildlife</button>
-            <button type="button" class="sample-chip" data-sample="city">🌆 Cityscape</button>
-            <button type="button" class="sample-chip" data-sample="sports">⚽ Sports</button>
+        <!-- Curated Sample Presets -->
+        <div class="sample-shelf">
+          <span class="shelf-label">Load reference sample</span>
+          <div class="sample-pills">
+            <button type="button" class="sample-pill" data-sample="alpine">
+              <span>Alpine Landscape</span>
+            </button>
+            <button type="button" class="sample-pill" data-sample="metropolis">
+              <span>Modern Architecture</span>
+            </button>
+            <button type="button" class="sample-pill" data-sample="wildlife">
+              <span>Wildlife Portrait</span>
+            </button>
+            <button type="button" class="sample-pill" data-sample="athletics">
+              <span>Athletic Action</span>
+            </button>
           </div>
         </div>
 
-        <!-- Action Button -->
-        <div class="action-footer">
-          <button id="analyze-btn" class="btn btn-primary btn-block" disabled>
-            <span class="btn-spinner hidden" id="spinner"></span>
-            <span id="btn-text">🚀 Analyze & Generate Caption</span>
+        <!-- Action Dispatcher -->
+        <div class="action-row">
+          <button type="button" id="analyze-btn" class="execute-btn" disabled>
+            <span id="btn-spinner" class="spinner-ring hidden"></span>
+            <span id="btn-label">Execute Analysis</span>
+            <kbd class="btn-shortcut">↵</kbd>
           </button>
         </div>
       </section>
 
-      <!-- Right Column: AI Analysis Results -->
-      <section class="card results-section">
-        <div class="card-header">
-          <h2>AI Caption & Insights</h2>
-          <span id="analysis-source-badge" class="badge hidden">AWS Rekognition</span>
+      <!-- Right Panel: Semantic Inspector Output -->
+      <section class="panel inspector-panel">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <span class="panel-tag">Output</span>
+            <h2 class="panel-heading">Semantic Insights</h2>
+          </div>
+          <div class="inspector-header-meta">
+            <span id="engine-badge" class="engine-badge hidden">Model</span>
+            <span id="latency-badge" class="latency-badge hidden">0ms</span>
+          </div>
         </div>
 
-        <!-- Empty State -->
-        <div id="results-empty" class="results-empty">
-          <div class="empty-icon">🤖</div>
-          <h3>No Image Analyzed Yet</h3>
-          <p>Upload an image and hit Analyze to generate vivid AI captions and detect scene elements with AWS.</p>
+        <!-- Empty State Viewfinder -->
+        <div id="inspector-empty" class="inspector-empty-state">
+          <div class="empty-viewfinder">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+              <path d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+            </svg>
+          </div>
+          <h3 class="empty-title">Awaiting Image Input</h3>
+          <p class="empty-description">Load an image in the console and trigger analysis to generate contextual captions, detected objects, confidence rankings, and extracted text.</p>
         </div>
 
-        <!-- Results Content -->
-        <div id="results-content" class="results-content hidden">
+        <!-- Rendered Results Viewport -->
+        <div id="inspector-results" class="inspector-results-viewport hidden">
           
-          <!-- Primary Caption Card -->
-          <div class="result-card primary-caption-card">
-            <div class="card-title-row">
-              <span class="card-eyebrow">✨ Generated Caption</span>
-              <div class="caption-actions">
-                <button id="speak-btn" class="icon-btn" title="Listen to caption">🔊 Speak</button>
-                <button id="copy-caption-btn" class="icon-btn" title="Copy caption">📋 Copy</button>
+          <!-- Editorial Primary Caption Block -->
+          <div class="insight-card primary-insight">
+            <div class="card-toolbar">
+              <span class="card-kicker">Primary Caption</span>
+              <div class="card-actions">
+                <button type="button" id="speak-caption-btn" class="action-btn" title="Synthesize Speech">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                  </svg>
+                  <span>Speak</span>
+                </button>
+                <button type="button" id="copy-caption-btn" class="action-btn" title="Copy to clipboard">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Copy</span>
+                </button>
               </div>
             </div>
-            <p id="primary-caption-text" class="primary-caption">...</p>
-            <div id="short-caption-badge" class="short-badge">...</div>
-          </div>
 
-          <!-- Detailed Description -->
-          <div class="result-card">
-            <span class="card-eyebrow">📖 Scene Summary</span>
-            <p id="detailed-description-text" class="text-description">...</p>
-          </div>
+            <p id="primary-caption-text" class="primary-prose">Generating analysis...</p>
 
-          <!-- Detected Labels -->
-          <div class="result-card">
-            <div class="card-title-row">
-              <span class="card-eyebrow">🏷️ Detected Entities & Confidence</span>
-              <span id="label-count" class="text-muted small-text">0 items</span>
-            </div>
-            <div id="labels-container" class="labels-grid">
-              <!-- Label pills injected dynamically -->
+            <div class="caption-stats-row">
+              <span id="short-caption-chip" class="headline-chip">Headline</span>
+              <div class="word-stats">
+                <span id="char-count">0 characters</span> • <span id="word-count">0 words</span>
+              </div>
             </div>
           </div>
 
-          <!-- Detected Text (OCR) -->
-          <div id="detected-text-card" class="result-card hidden">
-            <span class="card-eyebrow">📝 Detected Text (OCR)</span>
-            <div id="detected-text-container" class="text-tags-container"></div>
+          <!-- Scene Narrative / Detailed Description -->
+          <div class="insight-card">
+            <span class="card-kicker">Scene Narrative</span>
+            <p id="detailed-narrative-text" class="narrative-prose">Detailed scene narrative will appear here.</p>
           </div>
 
-          <!-- Hashtags -->
-          <div class="result-card">
-            <div class="card-title-row">
-              <span class="card-eyebrow">#️⃣ Generated Tags</span>
-              <button id="copy-hashtags-btn" class="icon-btn" title="Copy all tags">📋 Copy Tags</button>
+          <!-- Detected Entities & Confidence Distribution -->
+          <div class="insight-card">
+            <div class="card-toolbar">
+              <span class="card-kicker">Detected Entities &amp; Confidence</span>
+              <span id="entity-count-badge" class="count-badge">0 items</span>
             </div>
-            <p id="hashtags-text" class="hashtags-list">...</p>
+            <div id="entities-grid" class="entities-matrix">
+              <!-- Dynamically injected confidence chips -->
+            </div>
           </div>
 
-          <!-- Raw Data Accordion -->
-          <details class="raw-data-accordion">
-            <summary>🔍 View Raw AWS Response Data</summary>
-            <pre id="raw-json-viewer" class="json-viewer"></pre>
+          <!-- Extracted Text (OCR) -->
+          <div id="ocr-card" class="insight-card hidden">
+            <span class="card-kicker">Extracted Optical Text (OCR)</span>
+            <div id="ocr-tags-container" class="ocr-chips-wrap"></div>
+          </div>
+
+          <!-- Semantic Hashtags & Taxonomy -->
+          <div class="insight-card">
+            <div class="card-toolbar">
+              <span class="card-kicker">Semantic Keywords &amp; Tags</span>
+              <button type="button" id="copy-tags-btn" class="action-btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span>Copy Tags</span>
+              </button>
+            </div>
+            <div id="tags-cluster" class="tags-cluster"></div>
+          </div>
+
+          <!-- Raw Developer Payload Accordion -->
+          <details class="developer-drawer">
+            <summary class="drawer-summary">
+              <div class="drawer-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="16 18 22 12 16 6"></polyline>
+                  <polyline points="8 6 2 12 8 18"></polyline>
+                </svg>
+                <span>Raw Response Payload</span>
+              </div>
+              <span class="drawer-toggle-indicator">Expand</span>
+            </summary>
+            <div class="json-payload-wrap">
+              <pre id="raw-json-code" class="code-block"></pre>
+            </div>
           </details>
 
         </div>
@@ -168,71 +286,107 @@
     </div>
   </main>
 
-  <!-- Settings Modal -->
-  <div id="settings-modal" class="modal-backdrop hidden">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>⚙️ API Configuration</h3>
-        <button id="close-settings-btn" class="close-btn">✕</button>
-      </div>
-      <form id="aws-config-form">
-
-        <!-- OpenRouter Section -->
-        <p class="modal-section-title">🤖 OpenRouter AI (Vision)</p>
-        <p class="modal-info">
-          The app ships with a built-in OpenRouter key. Paste your own key below to override it.
-        </p>
-
-        <div class="form-group">
-          <label for="openrouter-key">OpenRouter API Key</label>
-          <div class="input-row">
-            <input type="password" id="openrouter-key" placeholder="sk-or-v1-... (leave blank to use default)">
-            <button type="button" id="hi-test-btn" class="btn btn-test-sm">👋 Hi Test</button>
+  <!-- Professional Settings Drawer Modal -->
+  <div id="settings-backdrop" class="modal-overlay hidden">
+    <div class="modal-dialog">
+      <div class="modal-header-bar">
+        <div class="modal-title-cluster">
+          <div class="modal-glyph">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
           </div>
-          <p id="hi-test-result" class="test-result-msg hidden"></p>
+          <div>
+            <h3 class="modal-heading">Studio Settings</h3>
+            <p class="modal-subheading">Manage inference keys and remote endpoints</p>
+          </div>
+        </div>
+        <button type="button" id="close-modal-x" class="modal-close-trigger" aria-label="Close dialog">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <form id="settings-form" class="modal-form">
+        <!-- OpenRouter Section -->
+        <div class="form-section">
+          <div class="section-label-row">
+            <span class="section-tag">Primary Vision Model</span>
+            <span class="section-badge">Recommended</span>
+          </div>
+
+          <div class="field-group">
+            <label for="input-openrouter-key" class="field-label">OpenRouter API Key</label>
+            <div class="field-input-cluster">
+              <input type="password" id="input-openrouter-key" class="text-input" placeholder="sk-or-v1-••••••••••••••••" autocomplete="off">
+              <button type="button" id="toggle-key-visibility" class="ghost-tool-btn" title="Toggle visibility">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+              <button type="button" id="test-key-btn" class="test-action-btn">
+                <span id="test-spinner" class="spinner-ring hidden"></span>
+                <span id="test-btn-text">Test Key</span>
+              </button>
+            </div>
+            <p class="field-help">Powers Llama 3.2 Vision &amp; Claude 3 multimodal captioning. Stored securely in your session.</p>
+            <div id="key-test-feedback" class="test-feedback hidden"></div>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="backend-url">Custom Backend URL (optional)</label>
-          <input type="url" id="backend-url" placeholder="https://your-backend.vercel.app">
+        <!-- Optional Backend URL Override -->
+        <div class="form-section">
+          <div class="section-label-row">
+            <span class="section-tag">Endpoint Routing</span>
+          </div>
+          <div class="field-group">
+            <label for="input-backend-url" class="field-label">Backend Host Override (Optional)</label>
+            <input type="url" id="input-backend-url" class="text-input" placeholder="https://api.yourdomain.com (Leave empty when co-located)">
+            <p class="field-help">Only specify if your backend is hosted separately from this frontend.</p>
+          </div>
         </div>
 
-        <hr class="modal-divider">
-
-        <!-- AWS Section -->
-        <p class="modal-section-title">☁️ AWS Rekognition (optional fallback)</p>
-
-        <div class="form-group">
-          <label for="aws-key-id">AWS Access Key ID</label>
-          <input type="text" id="aws-key-id" placeholder="AKIA...">
+        <!-- AWS Credentials (Optional Fallback) -->
+        <div class="form-section">
+          <div class="section-label-row">
+            <span class="section-tag">AWS Rekognition (Optional Fallback)</span>
+          </div>
+          <div class="fields-dual-row">
+            <div class="field-group">
+              <label for="input-aws-key-id" class="field-label">Access Key ID</label>
+              <input type="text" id="input-aws-key-id" class="text-input" placeholder="AKIA...">
+            </div>
+            <div class="field-group">
+              <label for="input-aws-secret" class="field-label">Secret Access Key</label>
+              <input type="password" id="input-aws-secret" class="text-input" placeholder="Secret Key">
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="select-aws-region" class="field-label">AWS Region</label>
+            <select id="select-aws-region" class="select-input">
+              <option value="us-east-1">us-east-1 (N. Virginia)</option>
+              <option value="us-west-2">us-west-2 (Oregon)</option>
+              <option value="ap-south-1">ap-south-1 (Mumbai)</option>
+              <option value="eu-west-1">eu-west-1 (Ireland)</option>
+              <option value="ap-southeast-1">ap-southeast-1 (Singapore)</option>
+            </select>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="aws-secret-key">AWS Secret Access Key</label>
-          <input type="password" id="aws-secret-key" placeholder="wJalrXUtnFEMI...">
-        </div>
-
-        <div class="form-group">
-          <label for="aws-region">AWS Region</label>
-          <select id="aws-region">
-            <option value="us-east-1">US East (N. Virginia) [us-east-1]</option>
-            <option value="us-west-2">US West (Oregon) [us-west-2]</option>
-            <option value="ap-south-1">Asia Pacific (Mumbai) [ap-south-1]</option>
-            <option value="eu-west-1">Europe (Ireland) [eu-west-1]</option>
-            <option value="ap-southeast-1">Asia Pacific (Singapore) [ap-southeast-1]</option>
-          </select>
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" id="cancel-settings-btn" class="btn btn-secondary">Cancel</button>
-          <button type="submit" class="btn btn-primary">💾 Save Config</button>
+        <div class="modal-footer-bar">
+          <button type="button" id="close-modal-btn" class="btn-cancel">Cancel</button>
+          <button type="submit" class="btn-save">Save Settings</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Toast Notification Container -->
-  <div id="toast-container" class="toast-container"></div>
+  <!-- Toast Notification Stack -->
+  <div id="toast-deck" class="toast-deck"></div>
 
   <script src="app.js"></script>
 </body>
