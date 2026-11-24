@@ -488,7 +488,7 @@ async function callOpenRouterDirect(file, apiKey) {
   const resData = await res.json();
   let raw = resData.choices[0].message.content.trim();
   if (raw.startsWith('```')) {
-    raw = raw.split('\n', 1)[1].rsplit('```', 1)[0].trim();
+    raw = raw.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
   }
   const parsed = JSON.parse(raw);
   parsed.source = 'openrouter';
