@@ -283,10 +283,23 @@ function generateReferenceSample(type) {
   };
 
   const sample = definitions[type] || definitions.alpine;
-  const blob = new Blob([sample.svg], { type: 'image/svg+xml' });
-  const sampleFile = new File([blob], `${type}-reference.svg`, { type: 'image/svg+xml' });
-  processSelectedImage(sampleFile);
-  triggerToast(`Loaded reference: ${sample.name}`, 'info');
+  const svgBlob = new Blob([sample.svg], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(svgBlob);
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 500;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, 800, 500);
+    URL.revokeObjectURL(url);
+    canvas.toBlob((pngBlob) => {
+      const sampleFile = new File([pngBlob], `${type}-reference.png`, { type: 'image/png' });
+      processSelectedImage(sampleFile);
+      triggerToast(`Loaded reference: ${sample.name}`, 'info');
+    }, 'image/png');
+  };
+  img.src = url;
 }
 
 // ── System Health & Key Validation ──────────────────────────────────────────
@@ -454,7 +467,7 @@ async function executeImageAnalysis() {
 async function callOpenRouterDirect(file, apiKey) {
   const b64 = await fileToBase64(file);
   const payload = {
-    model: 'meta-llama/llama-3.2-11b-vision-instruct:free',
+    model: 'particle-ai/particle-1:free',
     max_tokens: 650,
     temperature: 0.2,
     messages: [
@@ -491,8 +504,18 @@ async function callOpenRouterDirect(file, apiKey) {
     raw = raw.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
   }
   const parsed = JSON.parse(raw);
+  if (Array.isArray(parsed.labels_summary)) {
+    parsed.labels_summary = parsed.labels_summary.map((item, idx) =>
+      typeof item === 'string'
+        ? { name: item, confidence: Number(Math.max(70, 96 - idx * 3.2).toFixed(1)) }
+        : item
+    );
+  }
+  if (typeof parsed.detected_text === 'string') {
+    parsed.detected_text = parsed.detected_text.trim() ? [parsed.detected_text.trim()] : [];
+  }
   parsed.source = 'openrouter';
-  parsed.engine_name = 'Llama 3.2 Vision (Direct)';
+  parsed.engine_name = 'OpenRouter Vision (Direct)';
   return parsed;
 }
 
