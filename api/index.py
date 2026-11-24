@@ -206,10 +206,13 @@ def get_demo_analysis():
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
 @app.route('/')
+@app.route('/api')
+@app.route('/api/index')
 def serve_home():
     return send_from_directory(BASE_DIR, 'index.html')
 
 @app.route('/api/status', methods=['GET'])
+@app.route('/status', methods=['GET'])
 def get_system_status():
     has_openrouter = bool(OPENROUTER_API_KEY)
     has_aws = bool(AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY)
@@ -224,6 +227,7 @@ def get_system_status():
     })
 
 @app.route('/api/test-key', methods=['POST'])
+@app.route('/test-key', methods=['POST'])
 def test_key_connectivity():
     data = request.get_json() or {}
     key = data.get('api_key') or OPENROUTER_API_KEY
@@ -267,6 +271,7 @@ def test_key_connectivity():
         return jsonify({"success": False, "message": str(exc)}), 500
 
 @app.route('/api/config', methods=['POST'])
+@app.route('/config', methods=['POST'])
 def save_configuration():
     global OPENROUTER_API_KEY, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION
     data = request.json or {}
@@ -286,6 +291,7 @@ def save_configuration():
     })
 
 @app.route('/api/analyze', methods=['POST'])
+@app.route('/analyze', methods=['POST'])
 def analyze_image_route():
     start_time = time.time()
     try:

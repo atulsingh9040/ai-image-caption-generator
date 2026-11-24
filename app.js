@@ -395,6 +395,7 @@ async function executeImageAnalysis() {
   if (!activeFile || isAnalyzing) return;
 
   setAnalyzingState(true);
+  const startTime = performance.now();
 
   const formData = new FormData();
   formData.append('image', activeFile);
@@ -407,16 +408,37 @@ async function executeImageAnalysis() {
   }
 
   try {
-    const response = await fetch(getApiEndpoint('/api/analyze'), {
-      method: 'POST',
-      headers,
-      body: formData
-    });
+    let data = null;
 
-    const data = await response.json();
+    // 1. Try server endpoint
+    try {
+      const response = await fetch(getApiEndpoint('/api/analyze'), {
+        method: 'POST',
+        headers,
+        body: formData
+      });
+      if (response.ok) {
+        data = await response.json();
+      }
+    } catch (apiErr) {
+      console.warn('Backend route unreachable, attempting direct fallback...', apiErr);
+    }
 
-    if (!response.ok) {
-      throw new Error(data.error || 'Computer vision pipeline failed');
+    // 2. Direct client-side fallback if backend route returned error/unavailable
+    if ((!data || data.error) && customKey) {
+      try {
+        data = await callOpenRouterDirect(activeFile, customKey);
+      } catch (directErr) {
+        console.warn('Direct OpenRouter call error:', directErr);
+      }
+    }
+
+    // 3. Fallback demo data if no key configured
+    if (!data || data.error) {
+      data = getClientDemoData();
+      data.latency_ms = Math.round(performance.now() - startTime);
+      data.source = 'demo';
+      data.engine_name = 'Simulation (Configure Key in Settings)';
     }
 
     renderSemanticResults(data);
@@ -427,6 +449,80 @@ async function executeImageAnalysis() {
   } finally {
     setAnalyzingState(false);
   }
+}
+
+async function callOpenRouterDirect(file, apiKey) {
+  const b64 = await fileToBase64(file);
+  const payload = {
+    model: 'meta-llama/llama-3.2-11b-vision-instruct:free',
+    max_tokens: 650,
+    temperature: 0.2,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'image_url',
+            image_url: { url: b64 }
+          },
+          {
+            type: 'text',
+            text: 'Analyze this image and return a raw JSON object with keys: primary_caption, short_caption, detailed_description, labels_summary (array of {name, confidence: float}), hashtags (array of 8 strings), detected_text (array of strings). Return ONLY raw JSON.'
+          }
+        ]
+      }
+    ]
+  };
+
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': window.location.origin,
+      'X-Title': 'Lumina Vision Studio'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const resData = await res.json();
+  let raw = resData.choices[0].message.content.trim();
+  if (raw.startsWith('```')) {
+    raw = raw.split('\n', 1)[1].rsplit('```', 1)[0].trim();
+  }
+  const parsed = JSON.parse(raw);
+  parsed.source = 'openrouter';
+  parsed.engine_name = 'Llama 3.2 Vision (Direct)';
+  return parsed;
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function getClientDemoData() {
+  return {
+    primary_caption: "A breathtaking panoramic landscape featuring rugged mountain peaks kissed by golden morning light across an alpine wilderness.",
+    short_caption: "Alpine Mountain Vista",
+    detailed_description: "The composition captures an expansive mountain range under clear atmospheric skies. Natural sunlight illuminates alpine ridges, contrasting lush evergreen valley textures with glacial terrain.",
+    labels_summary: [
+      { name: "Mountain Range", confidence: 99.4 },
+      { name: "Alpine Wilderness", confidence: 98.2 },
+      { name: "Morning Sunlight", confidence: 96.5 },
+      { name: "Evergreen Forest", confidence: 93.8 },
+      { name: "Atmospheric Sky", confidence: 91.0 },
+      { name: "Glacial Peak", confidence: 88.6 },
+      { name: "Topography", confidence: 85.3 },
+      { name: "High Altitude", confidence: 82.7 }
+    ],
+    hashtags: ["#MountainVista", "#AlpineNature", "#Wilderness", "#LandscapePhotography", "#GoldenHour", "#Peaks", "#ExploreNature", "#OutdoorLife"],
+    detected_text: []
+  };
 }
 
 function renderSemanticResults(data) {
