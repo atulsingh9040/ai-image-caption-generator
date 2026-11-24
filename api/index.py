@@ -9,11 +9,15 @@ import base64
 import time
 import urllib.request
 import urllib.error
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 
 load_dotenv()
+
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if not os.path.exists(os.path.join(ROOT_DIR, 'index.html')):
+    ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -191,7 +195,19 @@ def get_demo_analysis():
     }
 
 
-# ── API Routes ────────────────────────────────────────────────────────────────
+# ── Static & API Routes ───────────────────────────────────────────────────────
+
+@app.route('/', methods=['GET'])
+def serve_index():
+    return send_from_directory(ROOT_DIR, 'index.html')
+
+
+@app.route('/<path:filename>', methods=['GET'])
+def serve_static_file(filename):
+    if filename in ('index.html', 'style.css', 'app.js'):
+        return send_from_directory(ROOT_DIR, filename)
+    return jsonify({"error": "Not found"}), 404
+
 
 @app.route('/api/status', methods=['GET'])
 def get_system_status():
