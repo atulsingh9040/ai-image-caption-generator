@@ -202,7 +202,7 @@ def call_openrouter_vision(image_bytes, api_key=None, model=None):
                 headers={
                     "Authorization": f"Bearer {key}",
                     "Content-Type": "application/json",
-                    "HTTP-Referer": "https://ai-image-caption-generator.vercel.app",
+                    "HTTP-Referer": "https://ai-image-caption-generator-api.vercel.app",
                     "X-Title": "Lumina Vision Studio"
                 },
                 method="POST"
@@ -303,7 +303,7 @@ def test_key_connectivity():
             f"{OPENROUTER_BASE}/auth/key",
             headers={
                 "Authorization": f"Bearer {key}",
-                "HTTP-Referer": "https://ai-image-caption-generator.vercel.app",
+                "HTTP-Referer": "https://ai-image-caption-generator-api.vercel.app",
                 "X-Title": "Lumina Vision Studio"
             },
             method="GET"

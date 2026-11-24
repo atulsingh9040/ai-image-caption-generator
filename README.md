@@ -1,5 +1,7 @@
 # Lumina Studio — AI Image Caption Generator
 
+**Live App:** [https://ai-image-caption-generator-api.vercel.app/](https://ai-image-caption-generator-api.vercel.app/)
+
 **Lumina Studio** (`v2.5.0`) is a full-stack, serverless-ready multimodal computer vision web application that analyzes images and generates editorial captions, scene narratives, entity confidence rankings, optical text (OCR), and semantic tags.
 
 It is architected as a **single-folder deployment** ready for **Vercel** and local execution, powered primarily by **OpenRouter Multimodal Vision AI** with automatic model fallback, an optional **AWS Rekognition** fallback, and a built-in simulation mode for offline previews.
